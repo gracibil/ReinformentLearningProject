@@ -101,10 +101,10 @@ class BaseDeepQModel(nn.Module):
             if random.random() < epsilon:
                 return random.choice([0,1])
 
-        probs = self.QNetwork.forward(torch.tensor(observation, dtype=torch.float32))
-        m = torch.distributions.Categorical(probs)
-        action = m.sample()
-        return action.item()
+
+        with torch.no_grad():
+            q_values = self.QNetwork(torch.tensor(observation, dtype=torch.float32))
+            return q_values.argmax().item()  # Greedy: best action
 
 
     def train_loop(self, model_name, episodes, epsilon=None,
@@ -126,7 +126,7 @@ class BaseDeepQModel(nn.Module):
                     warmup = False
 
             if epsilon is not None and not warmup:
-                epsilon = max(0.01, epsilon * epsilon_decay)
+                epsilon = max(0.001, epsilon * epsilon_decay)
 
             state, info = self.env.reset()
             action = self.choose_action(state, epsilon, warmup=warmup)
@@ -156,7 +156,7 @@ class BaseDeepQModel(nn.Module):
 
             episode_rewards.append(episode_reward)
 
-            print(f"\rEpisode: {episode}, Reward: {episode_reward}, Epsilon : {epsilon}", end="", flush=True)
+            print(f"\rEpisode: {episode}, Reward: {episode_reward}, Epsilon : {epsilon}, avg_rewards_50 : {sum(episode_rewards[-50:])/50}", end="", flush=True)
 
             if episode % t_net_update_freq == 0:
                 # Update target network every x episodes
@@ -167,5 +167,5 @@ class BaseDeepQModel(nn.Module):
 
 if __name__ == "__main__":
     # Example model training with some basic hyper-parameters
-    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.01, discount_factor=0.6)
-    model.train_loop("test_model", 1000, epsilon=0.2, warmup_steps=300)
+    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.0001, discount_factor=0.8)
+    model.train_loop("test_model", 10000, epsilon=0.9, warmup_steps=1000)
