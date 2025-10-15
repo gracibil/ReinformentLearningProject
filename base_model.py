@@ -42,13 +42,14 @@ class BaseMemoryBuffer:
 
 
 class BaseDeepQModel(nn.Module):
-    def __init__(self, state_dim, action_dim, memory_buffer_size, learning_rate):
+    def __init__(self, state_dim, action_dim, memory_buffer_size, learning_rate, discount_factor):
         super(BaseDeepQModel, self).__init__()
         self.memory_buffer = BaseMemoryBuffer(memory_buffer_size)
         self.QNetwork = QNetwork(state_dim, action_dim)
         self.TNetwork = QNetwork(state_dim, action_dim)
         self.TNetwork.load_state_dict(self.QNetwork.state_dict())
         self.optimizer = optim.Adam(self.QNetwork.parameters(), lr=learning_rate)
+        self.gamma = discount_factor
         self.env = gym.make("CartPole-v1", render_mode="human")
 
     def update_pole_length(self, value):
@@ -103,7 +104,7 @@ class BaseDeepQModel(nn.Module):
         probs = self.QNetwork.forward(torch.tensor(observation, dtype=torch.float32))
         m = torch.distributions.Categorical(probs)
         action = m.sample()
-        return action
+        return action.item()
 
 
     def train_loop(self, model_name, episodes, epsilon=None,
@@ -134,7 +135,7 @@ class BaseDeepQModel(nn.Module):
 
 
             while not done:
-                next_state, reward, done, _, _ = self.env.step(action.item())
+                next_state, reward, done, _, _ = self.env.step(action)
                 self.memory_buffer.push((state, action, reward, next_state, done))
                 state = next_state
                 action = self.choose_action(state, epsilon, warmup=warmup)
@@ -155,8 +156,16 @@ class BaseDeepQModel(nn.Module):
 
             episode_rewards.append(episode_reward)
 
+            print(f"\rEpisode: {episode}, Reward: {episode_reward}, Epsilon : {epsilon}", end="", flush=True)
+
             if episode % t_net_update_freq == 0:
                 # Update target network every x episodes
                 self.update_target_network()
 
         self.save_model(model_name)
+
+
+if __name__ == "__main__":
+    # Example model training with some basic hyper-parameters
+    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.01, discount_factor=0.6)
+    model.train_loop("test_model", 1000, epsilon=0.2, warmup_steps=300)
