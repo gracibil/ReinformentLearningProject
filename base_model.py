@@ -50,7 +50,7 @@ class BaseDeepQModel(nn.Module):
         self.TNetwork.load_state_dict(self.QNetwork.state_dict())
         self.optimizer = optim.Adam(self.QNetwork.parameters(), lr=learning_rate)
         self.gamma = discount_factor
-        self.env = gym.make("CartPole-v1", render_mode="human")
+        self.env = gym.make("CartPole-v1")
 
     def update_pole_length(self, value):
         # Change the pole length in the cartpole env
@@ -167,5 +167,5 @@ class BaseDeepQModel(nn.Module):
 
 if __name__ == "__main__":
     # Example model training with some basic hyper-parameters
-    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.0001, discount_factor=0.8)
-    model.train_loop("test_model", 10000, epsilon=0.9, warmup_steps=1000)
+    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=50000, learning_rate=0.0001, discount_factor=0.8)
+    model.train_loop("test_model", 500, epsilon=0.5, warmup_steps=1000)
