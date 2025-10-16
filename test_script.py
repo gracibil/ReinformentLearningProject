@@ -76,7 +76,8 @@ def test_pole_length(env, q_network):
     while not done:
 
         action = q_network(state).argmax().item()
-        next_state, reward, done, _, __ = env.step(action)
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        done = terminated or truncated
         next_state = torch.tensor(next_state, dtype=torch.float32).unsqueeze(0)
         state = next_state
         total_reward += reward
@@ -102,7 +103,7 @@ def test_script():
     all_results = []
 
     # import here your trained neural network
-    trained_nn = 'dqn_eps_panicbump_quick.pth'
+    trained_nn = 'dqn_eps_panicbump_smoke.pth'
 
     results = {}
     total_score = 0
