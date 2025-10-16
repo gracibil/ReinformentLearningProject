@@ -50,7 +50,7 @@ class BaseDeepQModel(nn.Module):
         self.TNetwork.load_state_dict(self.QNetwork.state_dict())
         self.optimizer = optim.Adam(self.QNetwork.parameters(), lr=learning_rate)
         self.gamma = discount_factor
-        self.env = gym.make("CartPole-v1", render_mode="human")
+        self.env = gym.make("CartPole-v1", render_mode=None)
 
     def update_pole_length(self, value):
         # Change the pole length in the cartpole env
@@ -107,9 +107,9 @@ class BaseDeepQModel(nn.Module):
             return q_values.argmax().item()  # Greedy: best action
 
 
-    def train_loop(self, model_name, episodes, epsilon=None,
+    def train_loop(self, episodes, epsilon=None,
                    t_net_update_freq=50, sample_batch=64,
-                   warmup_steps=1000, epsilon_decay=0.995,
+                   warmup_steps=1000, epsilon_decay=0.995, warmup=True,
                    **kwargs):
         # Define custom training loop for strategy here
         # to use **kwargs for extra args that you might want to add
@@ -117,7 +117,7 @@ class BaseDeepQModel(nn.Module):
 
         episode_rewards = []
         total_steps = 0
-        warmup = True # At the start do random actions to fill replay buffer
+        warmup = warmup # At the start do random actions to fill replay buffer
 
         for episode in range(episodes):
 
@@ -136,6 +136,14 @@ class BaseDeepQModel(nn.Module):
 
             while not done:
                 next_state, reward, done, _, _ = self.env.step(action)
+                # Custom reward shaping
+                if episode_reward >= 500:
+                    reward += 1
+                if episode_reward >= 1000:
+                    reward += 2
+                if episode_reward >= 1500:
+                    reward += 3
+
                 self.memory_buffer.push((state, action, reward, next_state, done))
                 state = next_state
                 action = self.choose_action(state, epsilon, warmup=warmup)
@@ -153,6 +161,10 @@ class BaseDeepQModel(nn.Module):
                     loss.backward()
                     self.optimizer.step()
 
+                # Condition to break if the model is doing well to prevent infinite loops
+                if episode_reward >= 2000:
+                    break
+
 
             episode_rewards.append(episode_reward)
 
@@ -162,10 +174,25 @@ class BaseDeepQModel(nn.Module):
                 # Update target network every x episodes
                 self.update_target_network()
 
-        self.save_model(model_name)
+            if sum(episode_rewards[-50:])/50 >= 2000:
+                # Condition to break if the model is doing well to stop training early
+                print("\nEnvironment solved in", episode, "episodes!")
+                self.update_target_network()
+                break
 
 
 if __name__ == "__main__":
-    # Example model training with some basic hyper-parameters
-    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.0001, discount_factor=0.8)
-    model.train_loop("test_model", 10000, epsilon=0.9, warmup_steps=1000)
+    pole_lengths = np.linspace(0.4, 1.8, 3)
+    model = BaseDeepQModel(state_dim=4, action_dim=2, memory_buffer_size=100000, learning_rate=0.0001, discount_factor=0.8)
+    print('Initial Training')
+    print(' ----------------------- ')
+
+    for length in pole_lengths:
+        print('\nTraining for pole length:', length)
+        print(' ----------------------- ')
+        model.update_pole_length(length)
+        model.train_loop(500, epsilon=0.2, warmup_steps=200, sample_batch=64, warmup=True)
+
+    model.save_model('base_model')
+
+
