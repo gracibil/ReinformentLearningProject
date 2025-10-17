@@ -1,5 +1,5 @@
 import math
-from base_model import BaseDeepQModel
+from strategies.base_model import BaseDeepQModel
 import numpy as np
 
 #  Epsilon controller (panic bump). basically the modifitcaiton from the baseline, so that my strategy works

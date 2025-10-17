@@ -58,7 +58,7 @@ class BaseDeepQModel(nn.Module):
 
     def save_model(self, model_name):
         # Save your model after training is complete to the models folder
-        torch.save(self.QNetwork.state_dict(), f"./models/{model_name}.pth")
+        torch.save(self.QNetwork.state_dict(), f"../models/{model_name}.pth")
 
     def update_target_network(self):
         self.TNetwork.load_state_dict(self.QNetwork.state_dict())

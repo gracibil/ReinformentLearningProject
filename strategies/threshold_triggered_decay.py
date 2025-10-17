@@ -2,9 +2,7 @@ import os
 import random
 import torch
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from base_model import BaseDeepQModel  
+from strategies.base_model import BaseDeepQModel
 
 
 class AdaptiveEpsilonDeepQModel(BaseDeepQModel):
@@ -53,8 +51,8 @@ class AdaptiveEpsilonDeepQModel(BaseDeepQModel):
         self.update_pole_length(current_length)
 
         #Making sure the models directory exists
-        if not os.path.exists('./models'):
-            os.makedirs('./models')
+        if not os.path.exists('../models'):
+            os.makedirs('../models')
 
         #Parameters for the adaptive window, used to compute average reward
         base_window = 50

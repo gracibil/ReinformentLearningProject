@@ -1,4 +1,4 @@
-from base_model import BaseDeepQModel
+from strategies.base_model import BaseDeepQModel
 import numpy as np
 
 class TrendBasedEpsilonModel(BaseDeepQModel):
