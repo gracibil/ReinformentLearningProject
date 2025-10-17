@@ -1,7 +1,7 @@
 from base_model import BaseDeepQModel
 import numpy as np
 
-class RewardBasedEpsilonModel(BaseDeepQModel):
+class TrendBasedEpsilonModel(BaseDeepQModel):
     def adjust_epsilon(self, epsilon, episode_rewards, epsilon_decay, epsilon_increase = 1.05):
         episode_count = len(episode_rewards)
         if episode_count > 50:
@@ -106,7 +106,7 @@ class RewardBasedEpsilonModel(BaseDeepQModel):
 
 if __name__ == "__main__":
     pole_lengths = np.linspace(0.4, 1.8, 3)
-    model = RewardBasedEpsilonModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.0001, discount_factor=0.8)
+    model = TrendBasedEpsilonModel(state_dim=4, action_dim=2, memory_buffer_size=10000, learning_rate=0.0001, discount_factor=0.8)
     first_run = True
     for length in pole_lengths:
 
@@ -121,4 +121,4 @@ if __name__ == "__main__":
             model.train_loop(500, epsilon=0.01, warmup_steps=0, sample_batch=256, warmup=False)
         print('\n')
 
-    model.save_model('reward_based_epsilon_model')
+    model.save_model('trend_base_epsilon_model')
