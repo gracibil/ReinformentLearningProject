@@ -12,7 +12,7 @@ import math
 
 
 
-#  Epsilon controller (panic bump)
+#  Epsilon controller (panic bump). basically the modifitcaiton from the baseline, so that my strategy works
 class EpsilonController:
     def __init__(self, base_schedule="exp",
                  eps_start=0.5, eps_min=0.02, max_cap=0.5,
@@ -212,12 +212,12 @@ if __name__ == "__main__":
         discount_factor=0.8
     )
 
-    #  test (3 lengths) — comment this line and use the full grid when you’re ready
+    #  testing the entire scenario in here
     model.train_loop(
         model_name="dqn_eps_panicbump_smoke",
         episodes_per_length=200,
         t_net_update_freq=50,
         sample_batch=256,
         warmup_steps=500,
-        pole_lengths=[0.4, 1.1, 1.6]
+        pole_lengths=[0.4, 1.1, 1.6]  #  test (3 lengths) — comment this line and use the full grid when you’re ready
     )
