@@ -103,7 +103,7 @@ def test_script():
     all_results = []
 
     # import here your trained neural network
-    trained_nn = 'dqn_eps_panicbump_smoke.pth'
+    trained_nn = 'dqn_eps_panicbump_smoke.pth' #called it smoke since it took so much to have it done, so I named it in such a way in case it explodes again 🤭
 
     results = {}
     total_score = 0
